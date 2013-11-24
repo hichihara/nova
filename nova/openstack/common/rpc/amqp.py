@@ -511,6 +511,7 @@ class MulticallProxyWaiter(object):
             failure = data['failure']
             result = rpc_common.deserialize_remote_exception(self._conf,
                                                              failure)
+            シリアライズ化された戻り値を元に戻す
         elif data.get('ending', False):
             self._got_ending = True
         else:
@@ -562,6 +563,7 @@ def multicall(conf, context, topic, msg, timeout, connection_pool):
             connection_pool.reply_proxy = ReplyProxy(conf, connection_pool)
     msg.update({'_reply_q': connection_pool.reply_proxy.get_reply_q()})
     wait_msg = MulticallProxyWaiter(conf, msg_id, timeout, connection_pool)
+    戻りを待って返すための変数をここで定義してる
     with ConnectionContext(conf, connection_pool) as conn:
         conn.topic_send(topic, rpc_common.serialize_msg(msg), timeout)
     return wait_msg
@@ -584,7 +586,7 @@ def cast(conf, context, topic, msg, connection_pool):
     pack_context(msg, context)
     with ConnectionContext(conf, connection_pool) as conn:
         conn.topic_send(topic, rpc_common.serialize_msg(msg))
-
+    メッセージを送るための形式にシリアライズして送ってる
 
 def fanout_cast(conf, context, topic, msg, connection_pool):
     """Sends a message on a fanout exchange without waiting for a response."""

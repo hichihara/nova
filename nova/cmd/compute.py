@@ -66,5 +66,6 @@ def main():
     server = service.Service.create(binary='nova-compute',
                                     topic=CONF.compute_topic,
                                     db_allowed=False)
+    db_allowed=Falseでnova-computeは直接DBにアクセスしない
     service.serve(server)
     service.wait()

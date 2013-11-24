@@ -121,7 +121,7 @@ def service_destroy(context, service_id):
 def service_get(context, service_id):
     """Get a service or raise if it does not exist."""
     return IMPL.service_get(context, service_id)
-
+    メソッド足すなら、ここ＋db/sqlalchemy/api.pyに同様のメソッドを足すことを忘れないように。
 
 def service_get_by_host_and_topic(context, host, topic):
     """Get a service by host it's on and topic it listens to."""

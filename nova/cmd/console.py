@@ -27,12 +27,16 @@ from nova import service
 
 CONF = cfg.CONF
 CONF.import_opt('console_topic', 'nova.console.rpcapi')
+前者の引数が任意設定、後者がデフォルト
 
 
-def main():
+def main():nova/cmd/console.pyのmainが一番最初。C言語のmain文と同じ。
     config.parse_args(sys.argv)
+    コンフィグファイルから漏れた設定をコマンドライン引数から読み込んでる
     logging.setup("nova")
     server = service.Service.create(binary='nova-console',
                                     topic=CONF.console_topic)
+    topicはRPCの中での相手を意味してる。
     service.serve(server)
     service.wait()
+    待ちに入る。イベントドリブン。

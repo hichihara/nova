@@ -21,3 +21,4 @@ DB abstraction for Nova
 """
 
 from nova.db.api import *  # noqa
+これのおかげでdb.api.method名ではなく、db.method名でアクセスできるようになってる

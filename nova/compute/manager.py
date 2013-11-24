@@ -771,19 +771,21 @@ class ComputeManager(manager.SchedulerDependentManager):
         """Initialization for a standalone compute service."""
         self.driver.init_host(host=self.host)
         context = nova.context.get_admin_context()
+        ユーザの情報を格納
         instances = instance_obj.InstanceList.get_by_host(
             context, self.host, expected_attrs=['info_cache'])
-
+        インスタンスを格納
         if CONF.defer_iptables_apply:
             self.driver.filter_defer_apply_on()
 
         self.init_virt_events()
-
+        ハイパーバイザをリアルタイムでモニタする何か？
         try:
             # checking that instance was not already evacuated to other host
             self._destroy_evacuated_instances(context)
             for instance in instances:
                 self._init_instance(context, instance)
+            前回起動時のゴミ掃除？
         finally:
             if CONF.defer_iptables_apply:
                 self.driver.filter_defer_apply_off()
@@ -794,6 +796,7 @@ class ComputeManager(manager.SchedulerDependentManager):
         our available resources (and indirectly our available nodes).
         """
         self.update_available_resource(nova.context.get_admin_context())
+        自分の中にあるDB情報（？）をアップデートする
 
     def _get_power_state(self, context, instance):
         """Retrieve the power state for the given instance."""

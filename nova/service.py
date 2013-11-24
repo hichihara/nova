@@ -152,46 +152,67 @@ class Service(service.Service):
                   {'topic': self.topic, 'version': verstr})
         self.basic_config_check()
         self.manager.init_host()
+        初期起動時の色々。各bootstrap配下にmanagerはある
         self.model_disconnected = False
         ctxt = context.get_admin_context()
+        管理者のコンテキストを拾う。DBへの操作とかでいる。
         try:
             self.service_ref = self.conductor_api.service_get_by_args(ctxt,
                     self.host, self.binary)
+            conductorのAPIを初期化。conductor経由と見せかけて自分でDBにアクセスしてるように見える。
             self.service_id = self.service_ref['id']
         except exception.NotFound:
             self.service_ref = self._create_service_ref(ctxt)
+            拾ってこれなかったら自分で作る
 
         self.manager.pre_start_hook()
+        hookを使ってるのはnovaだけ
 
         if self.backdoor_port is not None:
             self.manager.backdoor_port = self.backdoor_port
-
+        情報取得のためのポートを開く。telnetとかで繋いでPythonシェルの形で見えるようにできる
+        
+        -----------以下プロセス間通信------------
         self.conn = rpc.create_connection(new=True)
+        rabbitmqがpopularだが、そのようなrpc通信のためのものにコネクションを貼る
         LOG.debug(_("Creating Consumer connection for Service %s") %
                   self.topic)
 
         rpc_dispatcher = self.manager.create_rpc_dispatcher(self.backdoor_port)
-
+        dispatcherの登録。通知を受け取る、郵便受けてきなもの。大きく分けて3つ登録できる
+        - managerクラス。その中で定義されているmethodがリモートで呼び出されるAPI
+        - baseAPI。pingとbackdoorしか今はない。
+        - nova-conductorでなんか登録したの使える？
+        
         # Share this same connection for these Consumers
+        >>>>>>自分が扱うListen側の設定。例：AMQP
         self.conn.create_consumer(self.topic, rpc_dispatcher, fanout=False)
-
+        fanoutは早い者勝ち。自分自身しか処理しないので、これで良い
         node_topic = '%s.%s' % (self.topic, self.host)
+        nova-computeの特定のホストを指定したtopic
         self.conn.create_consumer(node_topic, rpc_dispatcher, fanout=False)
-
+        
         self.conn.create_consumer(self.topic, rpc_dispatcher, fanout=True)
+        すべてのノードに対して通信したい。ブロードキャスト。
+        <<<<<<
 
         # Consume from all consumers in a thread
         self.conn.consume_in_thread()
-
+         -----------以上プロセス間通信。RPC設定------------
         self.manager.post_start_hook()
+        RPC設定してからやらないといけない処理をhookでしてるか何か謎
+        nova-cellしか使ってない
 
         LOG.debug(_("Join ServiceGroup membership for this service %s")
                   % self.topic)
         # Add service to the ServiceGroup membership group.
         self.servicegroup_api.join(self.host, self.topic, self)
+        サービスの死活監視用のAPIを動かす
 
         if self.periodic_enable:
+            定期実行タスクを設定
             if self.periodic_fuzzy_delay:
+                乱数で生成したDELAYで実行するための
                 initial_delay = random.randint(0, self.periodic_fuzzy_delay)
             else:
                 initial_delay = None
@@ -200,13 +221,14 @@ class Service(service.Service):
                                      initial_delay=initial_delay,
                                      periodic_interval_max=
                                         self.periodic_interval_max)
-
+        ここまでで一連のサービスを起動できる。各呼び出し側でwait()が走る。
     def _create_service_ref(self, context):
         svc_values = {
             'host': self.host,
             'binary': self.binary,
             'topic': self.topic,
             'report_count': 0
+            死活監視のためのカウント
         }
         service = self.conductor_api.service_create(context, svc_values)
         self.service_id = service['id']
@@ -257,7 +279,7 @@ class Service(service.Service):
                           db_allowed=db_allowed)
 
         return service_obj
-
+        サービスのインスタンスを作成して返す
     def kill(self):
         """Destroy the service object in the datastore."""
         self.stop()
@@ -392,7 +414,7 @@ def serve(server, workers=None):
         raise RuntimeError(_('serve() can only be called once'))
 
     _launcher = service.launch(server, workers=workers)
-
+    ランチャーとserveをいったりきたい？理由謎
 
 def wait():
     _launcher.wait()

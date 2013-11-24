@@ -72,6 +72,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Manager(base.Base, periodic_task.PeriodicTasks):
+    base.BaseはDBの配下にある
     # Set RPC API version to 1.0 by default.
     RPC_API_VERSION = '1.0'
 
@@ -83,7 +84,7 @@ class Manager(base.Base, periodic_task.PeriodicTasks):
         self.service_name = service_name
         self.notifier = notifier.get_notifier(self.service_name, self.host)
         super(Manager, self).__init__(db_driver)
-
+        db_driverという引数をつけてSuperクラスとして呼び出し
     def create_rpc_dispatcher(self, backdoor_port=None, additional_apis=None):
         '''Get the rpc dispatcher for this manager.
 
@@ -93,10 +94,14 @@ class Manager(base.Base, periodic_task.PeriodicTasks):
         apis = []
         if additional_apis:
             apis.extend(additional_apis)
+            novaで呼び出せるRPC
         base_rpc = baserpc.BaseRPCAPI(self.service_name, backdoor_port)
+        BaseRPCAPIはそれぞれのmanagerで共通のものを使う〜〜
         apis.extend([self, base_rpc])
+        それぞれのmanagerに定義されるもの（単一）がrpcで呼び出せるものだったが、追加でAPIを定義できるようになった
         serializer = objects_base.NovaObjectSerializer()
         return rpc_dispatcher.RpcDispatcher(apis, serializer)
+    　　3種類のAPIを登録してそれぞれどのAPIで呼び出すかを〜〜
 
     def periodic_tasks(self, context, raise_on_error=False):
         """Tasks to be run at a periodic interval."""

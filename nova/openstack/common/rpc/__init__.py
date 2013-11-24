@@ -293,8 +293,12 @@ _RPCIMPL = None
 
 
 def _get_impl():
+    バックエンドのドライバを拾ってくる
     """Delay import of rpc_backend until configuration is loaded."""
     global _RPCIMPL
+    グローバル変数が定義されていなければ、取りに行こうとする
+    現在バックエンドのドライバは4種類ある
+    fake, kombu, qpid, zmq。rabbitmqを使うならkombuを使う。fakeはtest用、unittestとかで見る。
     if _RPCIMPL is None:
         try:
             _RPCIMPL = importutils.import_module(CONF.rpc_backend)

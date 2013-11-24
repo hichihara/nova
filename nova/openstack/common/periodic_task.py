@@ -178,6 +178,7 @@ class PeriodicTasks(object):
 
             try:
                 task(self, context)
+                ここで実行
             except Exception as e:
                 if raise_on_error:
                     raise

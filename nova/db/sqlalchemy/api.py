@@ -362,6 +362,8 @@ class InequalityCondition(object):
 
 
 @require_admin_context
+ユーザの権限チェック。api レベルでユーザ権限チェックしているので db でチェックしなくても良いのではと言われてる。
+これが付いたメソッドはadminのcontextを要求する
 def service_destroy(context, service_id):
     session = get_session()
     with session.begin():
@@ -754,6 +756,7 @@ def certificate_get_all_by_user_and_project(context, user_id, project_id):
 
 
 @require_context
+これ以下のメソッドはadminまでは要らないがcontextを要求する
 def floating_ip_get(context, id):
     try:
         result = model_query(context, models.FloatingIp, project_only=True).\

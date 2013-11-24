@@ -39,4 +39,5 @@ def main():
                                     topic=CONF.conductor.topic,
                                     manager=CONF.conductor.manager)
     service.serve(server, workers=CONF.conductor.workers)
+    マルチプロセスで動く際にworkerで設定すると複数プロセスで走る
     service.wait()

@@ -250,7 +250,7 @@ class ComputeAPI(rpcclient.RpcProxy):
         cctxt = self.client.prepare(server=_compute_host(None, instance))
         cctxt.cast(ctxt, 'add_fixed_ip_to_instance',
                    instance=instance_p, network_id=network_id)
-
+        fixed_ipを各VMに割り振りましょう
     def attach_interface(self, ctxt, instance, network_id, port_id,
                          requested_ip):
         instance_p = jsonutils.to_primitive(instance)
@@ -259,14 +259,14 @@ class ComputeAPI(rpcclient.RpcProxy):
         return cctxt.call(ctxt, 'attach_interface',
                           instance=instance_p, network_id=network_id,
                           port_id=port_id, requested_ip=requested_ip)
-
+    　　callは戻り値を待つ。同期処理。
     def attach_volume(self, ctxt, instance, volume_id, mountpoint):
         instance_p = jsonutils.to_primitive(instance)
         cctxt = self.client.prepare(server=_compute_host(None, instance))
         cctxt.cast(ctxt, 'attach_volume',
                    instance=instance_p, volume_id=volume_id,
                    mountpoint=mountpoint)
-
+        castは投げっぱなし。非同期処理。
     def change_instance_metadata(self, ctxt, instance, diff):
         instance_p = jsonutils.to_primitive(instance)
         cctxt = self.client.prepare(server=_compute_host(None, instance))
@@ -392,9 +392,12 @@ class ComputeAPI(rpcclient.RpcProxy):
     def get_vnc_console(self, ctxt, instance, console_type):
         instance_p = jsonutils.to_primitive(instance)
         cctxt = self.client.prepare(server=_compute_host(None, instance))
+        nova-computeのソースだけど、これを使うのはnova-api。
+        cctxtで誰が要求したのかわかる。
         return cctxt.call(ctxt, 'get_vnc_console',
                           instance=instance_p, console_type=console_type)
-
+    　　誰が誰に何を要求するのかが引数として与えられる。
+       パラメータの具体的な説明はopenstack/common/__init__.pyのcall, castの定義のとこに書いてる。
     def get_spice_console(self, ctxt, instance, console_type):
         instance_p = jsonutils.to_primitive(instance)
         cctxt = self.client.prepare(server=_compute_host(None, instance),

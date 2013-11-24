@@ -1,0 +1,22 @@
+
+3種類の起動の仕方(bootstrap)。
+- nova-computeとnova-console
+ - 単一プロセスの一般サービス
+- conductor(worker複数)
+ - 複数プロセスの一般サービス
+- api(RESTfulAPI)
+ - RESTful APIサービス
+
+DB、RPC系の話
+参考（http://openstack.jp/assets/files/20120323/howtoreadnovacodes/rpc.html）
+DBはnovaにとってキャッシュのように使ってる
+各computeに状態を問い合わせなくてもcomputeがDBに状態を保存して閲覧できるようにしてる。
+db/api.pyでDB系の操作をするmethodはservice_がついてる
+
+PeriodicTaskの話
+何らかのメソッドの前に@periodic_task.periodic_taskを付けてやる（デコレータとする）だけで、定期的に実行されるようになる
+
+Novaは基本的にwaitで止まっていて、自発的には動かない。動くのは以下の3パターン
+- ユーザAPI
+- novaの他のプロセスからRPCが飛んでくる
+- PeriodicTask
